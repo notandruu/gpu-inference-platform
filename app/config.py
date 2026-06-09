@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pydantic_settings import BaseSettings
 
@@ -20,8 +22,7 @@ class Settings(BaseSettings):
 
     metrics_port: int = int(os.getenv("METRICS_PORT", "8000"))
 
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env"}
 
 
 settings = Settings()
