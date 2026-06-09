@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "gpu-inference-platform"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Production-style GPU inference platform using PyTorch, ONNX, TensorRT, Triton, FastAPI, and Kubernetes"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "cuda_preprocess/tests"]
+addopts = "-q --tb=short"
+markers = [
+    "gpu: requires NVIDIA GPU",
+    "triton: requires running Triton server",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  triton:
+    image: nvcr.io/nvidia/tritonserver:24.04-py3
+    command: tritonserver --model-repository=/models --log-verbose=0 --allow-metrics=true
+    volumes:
+      - ./model_repository:/models:ro
+    ports:
+      - "8001:8001"   # gRPC
+      - "8002:8002"   # HTTP
+      - "8003:8003"   # metrics
+    # GPU access — requires NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/v2/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - TRITON_HOST=triton
+      - TRITON_GRPC_PORT=8001
+      - MODEL_NAME=resnet50_onnx
+    depends_on:
+      triton:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    volumes:
+      - ./k8s/prometheus-config.yaml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  # dcgm-exporter only needed on GPU host
+  # dcgm-exporter:
+  #   image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.6-3.4.2-ubuntu22.04
+  #   ports:
+  #     - "9400:9400"
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+volumes:
+  grafana-storage:

@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "gpu-inference-api"
+    static_configs:
+      - targets: ["gpu-inference-api:8000"]
+    metrics_path: /metrics
+
+  - job_name: "triton"
+    static_configs:
+      - targets: ["triton:8003"]
+    metrics_path: /metrics
+
+  - job_name: "dcgm-exporter"
+    static_configs:
+      - targets: ["dcgm-exporter:9400"]
+    metrics_path: /metrics

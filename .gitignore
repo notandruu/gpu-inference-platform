@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+*.so
+
+# Model artifacts
+*.onnx
+*.plan
+*.trt
+*.engine
+*.pb
+*.h5
+
+# Benchmark results (generated)
+benchmarks/results/*.json
+benchmarks/results/*.csv
+benchmarks/results/*.log
+
+# Profiling reports
+profiling/reports/*.nsys-rep
+profiling/reports/*.ncu-rep
+profiling/reports/*.sqlite
+
+# TensorRT build logs
+*.build.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# CUDA build artifacts
+cuda_preprocess/build/
+cuda_preprocess/*.egg-info/

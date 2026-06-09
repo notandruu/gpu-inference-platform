@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpu-inference-api
+  namespace: gpu-inference
+  labels:
+    app: gpu-inference-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gpu-inference-api
+  template:
+    metadata:
+      labels:
+        app: gpu-inference-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          image: gpu-inference-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: TRITON_HOST
+              value: "triton"
+            - name: TRITON_GRPC_PORT
+              value: "8001"
+            - name: MODEL_NAME
+              value: "resnet50_trt"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3

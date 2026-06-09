@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: triton
+  namespace: gpu-inference
+  labels:
+    app: triton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: triton
+  template:
+    metadata:
+      labels:
+        app: triton
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: triton
+          image: nvcr.io/nvidia/tritonserver:24.04-py3
+          command:
+            - tritonserver
+            - --model-repository=/models
+            - --allow-metrics=true
+            - --log-verbose=0
+          ports:
+            - containerPort: 8001
+              name: grpc
+            - containerPort: 8002
+              name: http
+            - containerPort: 8003
+              name: metrics
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+              memory: "8Gi"
+              cpu: "4"
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+          volumeMounts:
+            - name: model-repository
+              mountPath: /models
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /v2/health/live
+              port: 8002
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: 8002
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+      volumes:
+        - name: model-repository
+          # Use a PersistentVolumeClaim in production to store model artifacts
+          # configMap or emptyDir + initContainer to download models at startup
+          emptyDir: {}
