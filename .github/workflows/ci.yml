@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install torch torchvision onnx onnxruntime \
+            pydantic pydantic-settings fastapi uvicorn python-multipart \
+            prometheus-client httpx Pillow numpy \
+            "tritonclient[grpc]" \
+            pytest pytest-asyncio
+
+      - name: Run CPU-only tests
+        run: pytest tests/ -q -m "not gpu and not triton"
+
+      - name: Export ONNX model
+        run: python models/export_onnx.py --output /tmp/model.onnx --opset 17
+
+      - name: Validate ONNX model
+        run: python models/validate_model.py --onnx /tmp/model.onnx --num-runs 3
