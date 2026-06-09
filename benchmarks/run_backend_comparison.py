@@ -222,6 +222,7 @@ def main() -> None:
     parser.add_argument("--concurrency", nargs="+", type=int, default=[1, 4, 8, 16])
     parser.add_argument("--batch-size", nargs="+", type=int, default=[1, 4, 8])
     parser.add_argument("--duration-sec", type=float, default=30.0)
+    parser.add_argument("--skip-triton", action="store_true", help="Skip Triton/API benchmarks (no GPU/Triton required)")
     args = parser.parse_args()
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -243,6 +244,12 @@ def main() -> None:
         results.append(r.summary())
 
     # Triton via FastAPI
+    if args.skip_triton:
+        print("\n[SKIP] Triton/API benchmarks skipped (--skip-triton)")
+        args.output.write_text(json.dumps(results, indent=2))
+        print(f"\nResults written to {args.output}")
+        return
+
     for bs in args.batch_size:
         for c in args.concurrency:
             name = f"triton_api"

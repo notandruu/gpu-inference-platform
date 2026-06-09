@@ -224,9 +224,28 @@ pytest -v         # verbose output
 
 ## Benchmark results
 
-> Run `make benchmark` to generate results locally. This table is populated from `benchmarks/results/backend_comparison.md` after running the benchmark.
+CPU baselines (Apple M-series, batch=1–8, concurrency=1). Run `make benchmark` to regenerate.
 
-Results intentionally omitted — all numbers must be measured, not fabricated.
+| Backend | Batch | Concurrency | p50 ms | p95 ms | p99 ms | Tput req/s |
+|---|---:|---:|---:|---:|---:|---:|
+| pytorch_local | 1 | 1 | 18.0 | 18.4 | 18.8 | 51.6 |
+| pytorch_local | 4 | 1 | 48.5 | 50.7 | 56.3 | 19.3 |
+| pytorch_local | 8 | 1 | 77.7 | 80.6 | 83.3 | 11.3 |
+| onnxruntime_local | 1 | 1 | 16.2 | 18.9 | 31.6 | 60.0 |
+| onnxruntime_local | 4 | 1 | 77.1 | 81.5 | 97.3 | 12.9 |
+| onnxruntime_local | 8 | 1 | 119.1 | 130.0 | 168.9 | 8.4 |
+| triton_trt (GPU) | 1 | 1–32 | *run on GPU* | — | — | — |
+| triton_trt + dynbatch (GPU) | 8 | 16 | *run on GPU* | — | — | — |
+
+> Triton/TensorRT rows require a GPU node. Run `make benchmark-full` with a live Triton server to populate them.
+
+Preprocessing benchmark (CPU, 50 runs each):
+
+| Backend | Batch=1 p50 ms | Batch=8 p50 ms | Batch=32 p50 ms |
+|---|---:|---:|---:|
+| NumPy | 0.57 | 4.77 | 19.55 |
+| PyTorch (CPU) | 0.23 | 0.44 | 1.28 |
+| CUDA kernel | *GPU required* | — | — |
 
 ## Resume bullets
 

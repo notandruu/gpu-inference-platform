@@ -65,7 +65,16 @@ run-api:
 
 benchmark:
 	$(PYTHON) benchmarks/run_backend_comparison.py \
-		--output benchmarks/results/backend_comparison.json
+		--output benchmarks/results/backend_comparison.json \
+		--skip-triton
+	$(PYTHON) benchmarks/analyze_results.py \
+		--input benchmarks/results/backend_comparison.json
+
+benchmark-full:
+	$(PYTHON) benchmarks/run_backend_comparison.py \
+		--output benchmarks/results/backend_comparison.json \
+		--concurrency 1 4 8 16 32 \
+		--batch-size 1 4 8 16
 	$(PYTHON) benchmarks/analyze_results.py \
 		--input benchmarks/results/backend_comparison.json
 
